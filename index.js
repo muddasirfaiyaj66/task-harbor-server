@@ -8,7 +8,7 @@ const port = process.env.PORT || 5000;
 //middleware 
 app.use(express.json());
 app.use(cors({
-    origin:['http://localhost:5173'],
+    origin:['http://localhost:5173', 'https://task-harbor.web.app', 'https://task-harbor.firebaseapp.com'],
     
     
     credentials: true
@@ -28,10 +28,10 @@ const client = new MongoClient(uri, {
   async function run() {
     try {
       // Connect the client to the server	(optional starting in v4.7)
-      await client.connect();
+    //   await client.connect();
       // Send a ping to confirm a successful connection
-      await client.db("admin").command({ ping: 1 });
-      console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    //   await client.db("admin").command({ ping: 1 });
+    //   console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
       // Ensures that the client will close when you finish/error
     //   await client.close();
@@ -82,7 +82,36 @@ app.delete('/api/v1/tasks/:id', async(req,res)=>{
         res.status(500).send({ error: 'An error occurred', message: error.message });
       }
 })
+app.put('/api/v1/tasks/:id/status', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const newStatus = req.body.status;
 
+        const filter = { _id: new ObjectId(id) };
+        const update = { $set: { status: newStatus } };
+
+        const result = await tasksCollections.updateOne(filter, update);
+
+        res.send(result);
+    } catch (error) {
+        res.status(500).send({ error: 'An error occurred', message: error.message });
+    }
+});
+app.put('/api/v1/tasks/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const updatedData = req.body;
+
+        const filter = { _id: new ObjectId(id) };
+        const update = { $set: updatedData };
+
+        const result = await tasksCollections.updateOne(filter, update);
+
+        res.send(result);
+    } catch (error) {
+        res.status(500).send({ error: 'An error occurred', message: error.message });
+    }
+});
 
 
 app.get('/', async(req,res)=>{
